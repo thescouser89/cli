@@ -3,6 +3,7 @@ package org.jboss.pnc.bacon.cli.pnc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import org.jboss.pnc.bacon.cli.SubCommandHelper;
+import org.jboss.pnc.bacon.config.Config;
 import org.jboss.pnc.client.Configuration;
 import org.jboss.pnc.client.EnvironmentClient;
 import org.jboss.pnc.dto.BuildEnvironment;
@@ -17,10 +18,13 @@ public class Environment extends SubCommandHelper {
     }
 
     @CommandLine.Command(name = "list", mixinStandardHelpOptions = true)
-    public void list(@CommandLine.Option(names = {"--json"}) boolean jsonOutput) {
+    public void list(@CommandLine.Option(names = {"--json"},
+                                         description = "Print JSON output (Default: YAML)")
+                      boolean jsonOutput) {
+
         Configuration connectionInfo = Configuration.builder()
                 .protocol("http")
-                .host("orch-master-devel.psi.redhat.com")
+                .host(Config.instance().getPnc().getUrl())
                 .build();
 
         ObjectMapper mapper;
