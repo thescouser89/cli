@@ -81,6 +81,8 @@ public class PigConfiguration {
 
         builds.forEach(config -> config.setDefaults(defaultBuildParameters));
         builds.forEach(BuildConfig::sanitizebuildScript);
+        builds.forEach(BuildConfig::validate);
+
         List<String> errors = validate();
         if (!errors.isEmpty()) {
             throw new RuntimeException("The build configuration file is invalid. Errors:\n" + join(errors, "\n"));

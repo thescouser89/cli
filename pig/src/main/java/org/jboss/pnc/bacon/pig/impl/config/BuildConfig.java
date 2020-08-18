@@ -20,7 +20,9 @@ package org.jboss.pnc.bacon.pig.impl.config;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.pnc.bacon.common.Fail;
 import org.jboss.pnc.bacon.common.exception.FatalException;
+import org.jboss.pnc.bacon.config.Validate;
 import org.jboss.pnc.bacon.pig.impl.pnc.GitRepoInspector;
 import org.jboss.pnc.bacon.pnc.common.ClientCreator;
 import org.jboss.pnc.client.EnvironmentClient;
@@ -59,7 +61,7 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
  *         Date: 11/28/17
  */
 @Data
-public class BuildConfig {
+public class BuildConfig implements Validate {
     public static final String BUILD_FORCE = "BUILD_FORCE";
 
     private static final Logger log = LoggerFactory.getLogger(BuildConfig.class);
@@ -84,7 +86,7 @@ public class BuildConfig {
     /**
      * build pod memory in GB
      */
-    private Integer buildPodMemory;
+    private String buildPodMemory;
     private String pigYamlMetadata;
 
     private Set<String> customPmeParameters = new TreeSet<>();
@@ -197,7 +199,7 @@ public class BuildConfig {
         result.put("ALIGNMENT_PARAMETERS", dependencyExclusions);
 
         if (buildPodMemory != null) {
-            result.put("BUILDER_POD_MEMORY", buildPodMemory.toString());
+            result.put("BUILDER_POD_MEMORY", buildPodMemory);
         }
 
         if (pigYamlMetadata != null) {
@@ -270,7 +272,7 @@ public class BuildConfig {
 
     /**
      * Get the environmentId either as defined in the build-config.yaml or find it via environmentSystemImageId.
-     * 
+     *
      * @return
      */
     public String getEnvironmentId() {
@@ -300,6 +302,20 @@ public class BuildConfig {
         } else {
             log.error("No environmentId / environmentSystemImageId defined for the build config");
             throw new FatalException();
+        }
+    }
+
+    /**
+     * Validate if the build-config.yaml is up to spec
+     *
+     * throws FatalException if a validation fails. Don't try to catch that exception! It's meant to quit early
+     */
+    @Override
+    public void validate() {
+        if (buildPodMemory != null) {
+            Fail.failIfFalse(
+                    Fail.validateIfPositiveNumber(buildPodMemory),
+                    "buildPodMemory has to be positive and a number");
         }
     }
 }

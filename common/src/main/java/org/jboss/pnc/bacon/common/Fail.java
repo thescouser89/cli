@@ -16,4 +16,33 @@ public class Fail {
             throw new FatalException();
         }
     }
+
+    public static void failIfFalse(boolean result, String reason) {
+        if (!result) {
+            log.error(reason);
+            throw new FatalException();
+        }
+    }
+
+    /**
+     * Validate if string is a positive number of not. If the string cannot be parsed into a number, then return false.
+     * The number can be an integer or a double.
+     *
+     * @param number
+     * @return result
+     */
+    public static boolean validateIfPositiveNumber(String number) {
+        try {
+            double value = Double.valueOf(number);
+            if (value < 0) {
+                log.warn("Number {} is negative", number);
+                return false;
+            } else {
+                return true;
+            }
+        } catch (NumberFormatException e) {
+            log.warn("{} is not a number!", number);
+            return false;
+        }
+    }
 }
