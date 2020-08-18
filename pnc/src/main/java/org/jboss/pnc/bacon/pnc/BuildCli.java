@@ -73,7 +73,9 @@ import org.jboss.pnc.rest.api.parameters.BuildsFilterParameters;
                 BuildCli.Get.class,
                 BuildCli.GetRevision.class,
                 BuildCli.GetLog.class,
-                BuildCli.DownloadSources.class })
+                BuildCli.DownloadSources.class,
+                BuildCli.AddAttribute.class,
+                BuildCli.RemoveAttribute.class })
 @Slf4j
 public class BuildCli extends AbstractCommand {
 
@@ -340,6 +342,47 @@ public class BuildCli extends AbstractCommand {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
+            });
+        }
+    }
+
+    @CommandDefinition(name = "add-attribute", description = "Add an attribute to the build")
+    public class AddAttribute extends AbstractCommand {
+
+        @Argument(required = true, description = "Id of build")
+        private String id;
+
+        @Option(required = true, description = "Attribute key")
+        private String key;
+
+        @Option(required = true, description = "Attribute value")
+        private String value;
+
+        @Override
+        public CommandResult execute(CommandInvocation commandInvocation)
+                throws CommandException, InterruptedException {
+
+            return super.executeHelper(commandInvocation, () -> {
+                CREATOR.getClientAuthenticated().addAttribute(id, key, value);
+            });
+        }
+    }
+
+    @CommandDefinition(name = "remove-attribute", description = "Remove an attribute from the build")
+    public class RemoveAttribute extends AbstractCommand {
+
+        @Argument(required = true, description = "Id of build")
+        private String id;
+
+        @Option(required = true, description = "Attribute key")
+        private String key;
+
+        @Override
+        public CommandResult execute(CommandInvocation commandInvocation)
+                throws CommandException, InterruptedException {
+
+            return super.executeHelper(commandInvocation, () -> {
+                CREATOR.getClientAuthenticated().removeAttribute(id, key);
             });
         }
     }
