@@ -1,0 +1,5 @@
+#!variable=hello
+#!foo=bar
+key: hello
+product: bar
+nested: hello bar

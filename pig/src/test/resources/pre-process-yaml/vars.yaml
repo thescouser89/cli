@@ -1,0 +1,5 @@
+#!variable=hello
+#!foo=bar
+key: {{variable}}
+product: {{foo}}
+nested: {{variable}} {{foo}}

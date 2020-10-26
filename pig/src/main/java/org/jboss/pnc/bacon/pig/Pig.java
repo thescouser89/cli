@@ -17,6 +17,7 @@
  */
 package org.jboss.pnc.bacon.pig;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jboss.pnc.bacon.common.ObjectHelper;
 import org.jboss.pnc.bacon.common.cli.JSONCommandHandler;
 import org.jboss.pnc.bacon.common.exception.FatalException;
@@ -37,6 +38,8 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -62,6 +65,7 @@ import java.util.concurrent.Callable;
                 Pig.GenerateSharedContentAnalysis.class,
                 Pig.GenerateDocuments.class,
                 Pig.Release.class,
+                Pig.PreProcessYaml.class,
                 Pig.TriggerAddOns.class })
 public class Pig {
 
@@ -120,7 +124,7 @@ public class Pig {
         @Option(
                 names = { "-e", "--env" },
                 description = "Override the variables in the build-config.yaml. e.g -eVariable1=value1 -e Variable2=value2 --env=Variable3=value3")
-        private Map<String, String> overrides = Collections.emptyMap();
+        Map<String, String> overrides = Collections.emptyMap();
 
         /**
          * Computes a result, or throws an exception if unable to do so.
@@ -423,4 +427,20 @@ public class Pig {
         }
     }
 
+    @Command(name = "pre-process-yaml", description = "Show the final YAML content with variables injected")
+    @Slf4j
+    public static class PreProcessYaml extends PigCommand<String> {
+
+        @Override
+        public String doExecute() {
+            try {
+                File configFile = Paths.get(configDir).resolve("build-config.yaml").toFile();
+                System.out.println(PigFacade.preProcessYaml(configFile, overrides));
+            } catch (FileNotFoundException e) {
+                log.error("Config file {}{}build-config.yaml does not exist", configDir, File.separator);
+            }
+            // return empty string on success so that only thing in stdout is the final yaml content
+            return "";
+        }
+    }
 }

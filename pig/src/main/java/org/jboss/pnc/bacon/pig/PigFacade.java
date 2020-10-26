@@ -58,11 +58,15 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.NotFoundException;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -429,6 +433,30 @@ public final class PigFacade {
         PigConfiguration pigConfiguration = context().getPigConfiguration();
         Map<String, PncBuild> builds = context().getBuilds();
         new JavadocManager(pigConfiguration, context().getReleasePath(), context().getDeliverables(), builds).prepare();
+    }
+
+    /**
+     * Pre-process a yaml file, given the variables defined in the overrides and the variables defined in the YAML file,
+     * to produce the final yaml string with all variables substituted properly. Note that if a variable is defined with
+     * a value in both the overrides and the yaml, the overrides value wins.
+     *
+     * @param configFile file of yaml
+     * @param overrides Map of key value variables to inject in yaml
+     * @throws FileNotFoundException if yaml file doesn't exist
+     */
+    public static String preProcessYaml(File configFile, Map<String, String> overrides) throws FileNotFoundException {
+        InputStream preProcessed = PigConfiguration.preProcess(new FileInputStream(configFile), overrides);
+
+        String contents = "";
+        Scanner s = new Scanner(preProcessed);
+        // \\A means start of string
+        s.useDelimiter("\\A");
+
+        if (s.hasNext()) {
+            contents = s.next();
+        }
+
+        return contents;
     }
 
     /**
