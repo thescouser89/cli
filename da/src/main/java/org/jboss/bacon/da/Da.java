@@ -18,10 +18,22 @@
 package org.jboss.bacon.da;
 
 import lombok.extern.slf4j.Slf4j;
-import org.jboss.pnc.bacon.common.exception.FatalException;
+import org.jboss.bacon.da.rest.endpoint.DAReportsService;
+import org.jboss.da.model.rest.GAV;
+import org.jboss.da.model.rest.NPMPackage;
+import org.jboss.da.reports.model.request.LookupGAVsRequest;
+import org.jboss.da.reports.model.request.LookupNPMRequest;
+import org.jboss.da.reports.model.response.LookupReport;
+import org.jboss.da.reports.model.response.NPMLookupReport;
+import org.jboss.pnc.bacon.common.ObjectHelper;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
+import retrofit2.Call;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -34,6 +46,9 @@ public class Da {
     @Command(name = "lookup", description = "lookup available productized artifact version for an artifact")
     public static class Lookup implements Callable<Integer> {
 
+        public Lookup() {
+        }
+
         @Parameters(description = "groupId:artifactId:version of the artifact to lookup")
         private String gav = "";
 
@@ -44,8 +59,35 @@ public class Da {
          */
         @Override
         public Integer call() {
-            log.error("DA is not yet implemented");
-            throw new FatalException("NYI");
+
+            DAReportsService reports = DAReportsService.getClient();
+
+            List<GAV> gavs = new LinkedList<>();
+            GAV gav = new GAV("xom", "xom", "1.2.5");
+            gavs.add(gav);
+            List<NPMPackage> npmPackageList = new LinkedList<>();
+            NPMPackage npmPkg = new NPMPackage("abab", "1.2.3");
+            npmPackageList.add(npmPkg);
+
+            LookupNPMRequest npmRequest = LookupNPMRequest.builder().packages(npmPackageList).build();
+
+            LookupGAVsRequest request = new LookupGAVsRequest(
+                    Collections.emptySet(),
+                    Collections.emptySet(),
+                    null,
+                    false,
+                    null,
+                    null,
+                    gavs);
+            Call<List<LookupReport>> response = reports.lookupGavs(request);
+            Call<List<NPMLookupReport>> npmResponse = reports.lookupNPM(npmRequest);
+            try {
+                ObjectHelper.print(false, response.execute().body());
+                ObjectHelper.print(false, npmResponse.execute().body());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return 5;
         }
     }
 }
